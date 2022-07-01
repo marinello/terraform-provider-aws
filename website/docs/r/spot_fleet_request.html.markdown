@@ -225,6 +225,7 @@ across different markets and instance types. Conflicts with `launch_template_con
   Valid only when `allocation_strategy` is set to `lowestPrice`. Spot Fleet selects
   the cheapest Spot pools and evenly allocates your target Spot capacity across
   the number of Spot pools that you specify.
+* `context` - (Optional) Reserved.
 * `excess_capacity_termination_policy` - Indicates whether running Spot
   instances should be terminated if the target capacity of the Spot fleet
   request is decreased below the current size of the Spot fleet.

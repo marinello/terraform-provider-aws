@@ -58,6 +58,10 @@ func ResourceSpotFleetRequest() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"context": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			// Provided constants do not have the correct casing so going with hard-coded values.
 			"excess_capacity_termination_policy": {
 				Type:     schema.TypeString,
@@ -833,6 +837,7 @@ func resourceSpotFleetRequestCreate(d *schema.ResourceData, meta interface{}) er
 		IamFleetRole:                     aws.String(d.Get("iam_fleet_role").(string)),
 		TargetCapacity:                   aws.Int64(int64(d.Get("target_capacity").(int))),
 		ClientToken:                      aws.String(resource.UniqueId()),
+		Context:                          aws.String(d.Get("context").(string)),
 		TerminateInstancesWithExpiration: aws.Bool(d.Get("terminate_instances_with_expiration").(bool)),
 		ReplaceUnhealthyInstances:        aws.Bool(d.Get("replace_unhealthy_instances").(bool)),
 		InstanceInterruptionBehavior:     aws.String(d.Get("instance_interruption_behaviour").(string)),
@@ -850,6 +855,10 @@ func resourceSpotFleetRequestCreate(d *schema.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("launch_template_config"); ok && v.(*schema.Set).Len() > 0 {
 		spotFleetConfig.LaunchTemplateConfigs = expandLaunchTemplateConfigs(v.(*schema.Set).List())
+	}
+
+	if v, ok := d.GetOk("context"); ok {
+		spotFleetConfig.Context = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("excess_capacity_termination_policy"); ok {
@@ -1018,6 +1027,10 @@ func resourceSpotFleetRequestRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("target_capacity", config.TargetCapacity)
 	}
 
+	if config.Context != nil {
+		d.Set("context", config.Context)
+	}
+
 	if config.TerminateInstancesWithExpiration != nil {
 		d.Set("terminate_instances_with_expiration", config.TerminateInstancesWithExpiration)
 	}
@@ -1104,6 +1117,12 @@ func resourceSpotFleetRequestUpdate(d *schema.ResourceData, meta interface{}) er
 
 		if d.HasChange("on_demand_target_capacity") {
 			input.OnDemandTargetCapacity = aws.Int64(int64(d.Get("on_demand_target_capacity").(int)))
+		}
+
+		if d.HasChange("context") {
+			if val, ok := d.GetOk("context"); ok {
+				input.Context = aws.String(val.(string))
+			}
 		}
 
 		if d.HasChange("excess_capacity_termination_policy") {
